@@ -5,9 +5,13 @@
 请通过以下命令配置环境，用于测试编辑结果：
 
 ```bash
-conda create --name env_2 python=3.XX -y
+conda create --name env_2 python=3.10 -y
 conda activate env_2
-pip install xxx
+pip install pycapnp
+pip install pycurl
+pip install tenacity
+pip install atomicwrites
+pip install tqdm
 ```
 
 ## 任务介绍
@@ -44,23 +48,26 @@ openpilot 在 `tools/lib/logreader.py` 中定义了类 `LogReader`，该类的�
 当你需要输入编辑描述时，你可以直接复制以下内容：
 
 ```bash
-LogReader: add arg to sort by time (#23346)
+LogReader: add arg to sort by time
 ```
 
 如果你所在的实验组使用的后端模型是 Claude Code，你可以输入任意内容和 Claude Code 沟通。
 
 ## 验证修改
 
-请运行一下命令验证修改是否成功
+请在项目根目录下运行以下命令，验证修改是否成功：
 
 ```bash
-
+python -m test.run
 ```
 
 当修改正确时，你应该看到以下内容：
 
 ```bash
-
+Test 1 passed.
+Test 2 passed.
+Test 3 passed.
+Test 4 passed.
 ```
 
 恭喜你成功完成该任务，你可以告知实验负责人，停止录屏，整理需要提交的内容，并在**所有任务**完成后，打包提交。
