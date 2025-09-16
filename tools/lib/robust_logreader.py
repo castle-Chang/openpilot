@@ -12,7 +12,7 @@ from tools.lib.logreader import FileReader, LogReader
 
 
 class RobustLogReader(LogReader):
-  def __init__(self, fn, canonicalize=True, only_union_types=False):  # pylint: disable=super-init-not-called
+  def __init__(self, fn, canonicalize=True, only_union_types=False, sort_by_time=False):  # pylint: disable=super-init-not-called
     data_version = None
     _, ext = os.path.splitext(urllib.parse.urlparse(fn).path)
     with FileReader(fn) as f:
@@ -44,7 +44,7 @@ class RobustLogReader(LogReader):
     progress = None
     while True:
       try:
-        self._ents = list(ents)
+        self._ents = list(sorted(ents, key=lambda x: x.logMonoTime) if sort_by_time else ents)
         break
       except capnp.lib.capnp.KjException:
         if progress is None:
