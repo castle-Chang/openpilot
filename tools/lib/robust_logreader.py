@@ -9,7 +9,6 @@ from tempfile import TemporaryDirectory
 import capnp
 
 from tools.lib.logreader import FileReader, LogReader
-from cereal import log as capnp_log
 
 
 class RobustLogReader(LogReader):
@@ -19,8 +18,8 @@ class RobustLogReader(LogReader):
     with FileReader(fn) as f:
       dat = f.read()
 
-    if ext == "":
-      pass
+    if ext == ".json":
+      ents = load_env_from_json(dat)
     elif ext == ".bz2":
       try:
         dat = bz2.decompress(dat)
@@ -38,13 +37,13 @@ class RobustLogReader(LogReader):
             print(f"Decompressing {n}")
             with open(n, 'rb') as f:
               dat += bz2.decompress(f.read())
+      ents = capnp_log.Event.read_multiple_bytes(dat)
     else:
       raise Exception(f"unknown extension {ext}")
 
     progress = None
     while True:
       try:
-        ents = capnp_log.Event.read_multiple_bytes(dat)
         self._ents = list(ents)
         break
       except capnp.lib.capnp.KjException:
@@ -58,3 +57,15 @@ class RobustLogReader(LogReader):
     self._ts = [x.logMonoTime for x in self._ents]
     self.data_version = data_version
     self._only_union_types = only_union_types
+
+
+def load_env_from_json(dat):
+  import json
+  json_data = json.loads(dat)
+  class Event:
+    def __init__(self, d):
+        self.logMonoTime = d["logMonoTime"]
+        self.id = d["id"]
+
+  ents = [Event(d) for d in json_data]
+  return ents

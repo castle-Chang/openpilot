@@ -9,7 +9,6 @@ try:
   from xx.chffr.lib.filereader import FileReader
 except ImportError:
   from tools.lib.filereader import FileReader
-from cereal import log as capnp_log
 
 # this is an iterator itself, and uses private variables from LogReader
 class MultiLogIterator:
@@ -81,12 +80,8 @@ class LogReader:
     with FileReader(fn) as f:
       dat = f.read()
 
-    if ext == "":
-      # old rlogs weren't bz2 compressed
-      ents = capnp_log.Event.read_multiple_bytes(dat)
-    elif ext == ".bz2":
-      dat = bz2.decompress(dat)
-      ents = capnp_log.Event.read_multiple_bytes(dat)
+    if ext == ".json":
+      ents = load_env_from_json(dat)
     else:
       raise Exception(f"unknown extension {ext}")
 
@@ -106,6 +101,19 @@ class LogReader:
       else:
         yield ent
 
+
+def load_env_from_json(dat):
+  import json
+  json_data = json.loads(dat)
+  class Event:
+    def __init__(self, d):
+        self.logMonoTime = d["logMonoTime"]
+        self.id = d["id"]
+
+  ents = [Event(d) for d in json_data]
+  return ents
+
+
 if __name__ == "__main__":
   import codecs
   # capnproto <= 0.8.0 throws errors converting byte data to string
@@ -114,4 +122,4 @@ if __name__ == "__main__":
   log_path = sys.argv[1]
   lr = LogReader(log_path)
   for msg in lr:
-    print(msg)
+    print(msg.id)
